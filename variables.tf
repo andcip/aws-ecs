@@ -30,7 +30,7 @@ variable "trigger" {
 variable "service" {
   type = object({
     name : string
-    image : string
+    version : string
     port : number
     healthcheck_path : optional(string)
     capacity_provider: object({

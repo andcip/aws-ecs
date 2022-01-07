@@ -123,7 +123,7 @@ resource "aws_ecs_task_definition" "service_task_definition" {
       memory           = var.service_params.memory
       environment      = var.service.env
       essential        = true
-      image            = var.service.image
+      image            = "${data.aws_ecr_repository.service_repository.repository_url}:${var.service.version}"
       tags             = []
       portMappings     = [
         {
