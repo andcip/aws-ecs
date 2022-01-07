@@ -303,7 +303,7 @@ resource "aws_lb_listener_rule" "service" {
   }
 
   dynamic "condition" {
-    for_each = try(var.trigger.lb.conditions.http_methods, [])
+    for_each = var.trigger.lb.conditions.http_methods
     content {
       http_request_method {
         values = var.trigger.lb.conditions.http_methods
@@ -312,7 +312,7 @@ resource "aws_lb_listener_rule" "service" {
   }
 
   dynamic "condition" {
-    for_each = try(var.trigger.lb.conditions.source_ips, [])
+    for_each = var.trigger.lb.conditions.source_ips
     content {
       source_ip {
         values = var.trigger.lb.conditions.source_ips
@@ -321,7 +321,7 @@ resource "aws_lb_listener_rule" "service" {
   }
 
   dynamic "condition" {
-    for_each = try(var.trigger.lb.conditions.query_string, null) != null ? [true] : []
+    for_each = var.trigger.lb.conditions.query_string != null ? [true] : []
     content {
       query_string {
         value  = var.trigger.lb.conditions.query_string
