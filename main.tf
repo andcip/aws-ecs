@@ -115,13 +115,17 @@ resource "aws_cloudwatch_log_group" "task_log_group" {
   retention_in_days = 60
 }
 
+locals {
+  environment_variables = [for n, v in var.service.env : { name : n, value : v }]
+}
+
 resource "aws_ecs_task_definition" "service_task_definition" {
   container_definitions    = jsonencode([
     {
       name             = var.service.name
       cpu              = var.service_params.cpu
       memory           = var.service_params.memory
-      environment      = var.service.env
+      environment      = local.environment_variables
       essential        = true
       image            = "${data.aws_ecr_repository.service_repository.repository_url}:${var.service.version}"
       tags             = []
@@ -220,19 +224,22 @@ resource "aws_ecs_service" "service" {
 
   network_configuration {
     assign_public_ip = var.service_params.is_public
-    subnets          = data.aws_subnets.subnets.id
+    subnets          = data.aws_subnets.subnets.*.id
     security_groups  = [aws_security_group.service_sg.id]
   }
 
-  service_registries {
-    registry_arn = aws_service_discovery_service.ecs_discovery_service[0].arn
+  dynamic "service_registries" {
+    for_each = var.service_registry_name != null ? [true] : []
+    content {
+      registry_arn = aws_service_discovery_service.ecs_discovery_service[0].arn
+    }
   }
 
   dynamic "load_balancer" {
-    for_each = try(var.trigger.lb, null) == null ? [] : aws_lb_target_group.service_tg[0]
+    for_each = try(var.trigger.lb, null) == null ? [] : [true]
 
     content {
-      target_group_arn = load_balancer.value.arn
+      target_group_arn = aws_lb_target_group.service_tg[0].arn
       container_name   = var.service.name
       container_port   = var.service.port
     }
@@ -270,7 +277,7 @@ resource "aws_lb_target_group" "service_tg" {
 
 resource "aws_lb_listener_rule" "service" {
   count        = try(var.trigger.lb, null) == null ? 0 : 1
-  listener_arn = data.aws_lb.lb_trigger[0].arn_suffix
+  listener_arn = var.trigger.lb.arn
 
   action {
     type             = "forward"
@@ -284,7 +291,7 @@ resource "aws_lb_listener_rule" "service" {
   }
 
   dynamic "condition" {
-    for_each = length(try(var.trigger.lb.conditions.hosts, [])) > 0 ? [true] : []
+    for_each = var.trigger.lb.conditions.hosts != null ?  [true] : []
     content {
       host_header {
         values = var.trigger.lb.conditions.hosts
@@ -293,7 +300,7 @@ resource "aws_lb_listener_rule" "service" {
   }
 
   dynamic "condition" {
-    for_each = try(var.trigger.lb.conditions.http_headers, [])
+    for_each = var.trigger.lb.conditions.http_headers != null ? var.trigger.lb.conditions.http_headers : []
     content {
       http_header {
         http_header_name = condition.key
@@ -303,7 +310,7 @@ resource "aws_lb_listener_rule" "service" {
   }
 
   dynamic "condition" {
-    for_each = var.trigger.lb.conditions.http_methods
+    for_each = var.trigger.lb.conditions.http_methods != null ? [true] : []
     content {
       http_request_method {
         values = var.trigger.lb.conditions.http_methods
@@ -312,7 +319,7 @@ resource "aws_lb_listener_rule" "service" {
   }
 
   dynamic "condition" {
-    for_each = var.trigger.lb.conditions.source_ips
+    for_each = var.trigger.lb.conditions.source_ips != null ? [true] : []
     content {
       source_ip {
         values = var.trigger.lb.conditions.source_ips
