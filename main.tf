@@ -117,8 +117,9 @@ resource "aws_cloudwatch_log_group" "task_log_group" {
 
 locals {
   environment_variables = [for n, v in var.service.env : { name : n, value : v }]
-  healthcheck_path = defaults(var.service.healthcheck.path, "")
-  healthcheck_port = defaults(var.service.healthcheck.port, var.service.port)
+
+  healthcheck_command = var.service.healthcheck.path != null && var.service.healthcheck.port != null ? "curl -f http://localhost:${var.service.healthcheck.port}${var.service.healthcheck.path} || exit 1" : "exit 0"
+
 }
 
 ##TODO move to template file
@@ -142,7 +143,7 @@ resource "aws_ecs_task_definition" "service_task_definition" {
       startTimeout     = 10
       stopTimeout      = 10
       healthCheck      = {
-        command  = ["curl -f http://localhost:${local.healthcheck_port}${local.healthcheck_path} || exit 1"]
+        command  = [local.healthcheck_command]
         interval = 30
         timeout  = 10
         retries  = 5
@@ -268,7 +269,7 @@ resource "aws_lb_target_group" "service_tg" {
   vpc_id      = var.vpc_id
   health_check {
     healthy_threshold = 3
-    path              = var.service.healthcheck_path
+    path              = var.service.healthcheck.path
     port              = var.service.port
   }
   stickiness {
