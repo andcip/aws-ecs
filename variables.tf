@@ -32,10 +32,11 @@ variable "service" {
     name : string
     version : string
     port : number
-    healthcheck : optional(object({
-      port: optional(number)
-      path: optional(string)
-    }))
+    healthcheck : object({
+      port: number
+      path: string
+      enabled: bool
+    })
     capacity_provider: object({
       provider: string
       base: number,

@@ -77,15 +77,15 @@ resource "aws_iam_role_policy" "task_role_policy" {
 
   policy = jsonencode({
 
-    version : "2012-10-17",
-    statement : [
+    Version : "2012-10-17",
+    Statement : [
       {
-        effect : "Allow",
-        action : [
+        Effect : "Allow",
+        Action : [
           "xray:PutTelemetryRecords",
           "xray:PutTraceSegments"
         ],
-        resources : "*"
+        Resources : "*"
       }
     ]
   })
@@ -118,8 +118,7 @@ resource "aws_cloudwatch_log_group" "task_log_group" {
 locals {
   environment_variables = [for n, v in var.service.env : { name : n, value : v }]
 
-  healthcheck_command = var.service.healthcheck.path != null && var.service.healthcheck.port != null ? "curl -f http://localhost:${var.service.healthcheck.port}${var.service.healthcheck.path} || exit 1" : "exit 0"
-
+  healthcheck_command = var.service.healthcheck.enabled ? "curl -f http://localhost:${var.service.healthcheck.port}${var.service.healthcheck.path} || exit 1" : "exit 0"
 }
 
 ##TODO move to template file
@@ -236,7 +235,7 @@ resource "aws_ecs_service" "service" {
 
   network_configuration {
     assign_public_ip = var.service_params.is_public
-    subnets          = data.aws_subnets.subnets.*.id
+    subnets          = data.aws_subnets.subnets.ids
     security_groups  = [aws_security_group.service_sg.id]
   }
 
