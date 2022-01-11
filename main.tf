@@ -184,12 +184,13 @@ data "aws_subnets" "subnets" {
 
 data "aws_lb" "lb_trigger" {
   count = try(var.trigger.lb, null) != null ? 1 : 0
-  name = var.trigger.lb.name
+  name  = var.trigger.lb.name
 }
 
 data "aws_lb_listener" "lb_listener" {
-  load_balancer_arn = data.aws_lb.lb_trigger.arn
-  port = 443
+  count             = try(var.trigger.lb, null) != null ? 1 : 0
+  load_balancer_arn = data.aws_lb.lb_trigger[0].arn
+  port              = 443
 }
 
 
@@ -202,7 +203,7 @@ resource "aws_security_group" "service_sg" {
     from_port       = var.service.port
     to_port         = var.service.port
     security_groups = var.trigger.lb != null ? data.aws_lb.lb_trigger[0].security_groups : null
-    cidr_blocks     =  var.trigger.lb != null ? null : [data.aws_vpc.vpc.cidr_block]
+    cidr_blocks     = var.trigger.lb != null ? null : [data.aws_vpc.vpc.cidr_block]
   }
 
   egress {
@@ -340,7 +341,7 @@ resource "aws_lb_listener_rule" "service" {
     for_each = var.trigger.lb.conditions.query_string != null ? [true] : []
     content {
       query_string {
-        value  = var.trigger.lb.conditions.query_string
+        value = var.trigger.lb.conditions.query_string
       }
     }
   }
