@@ -23,7 +23,7 @@ data "aws_iam_policy" "aws_service_autoscale_role" {
 }
 
 resource "aws_iam_role" "task_execution_role" {
-  name        = "task-execution-role"
+  name        = "${var.service.name}-task-execution-role"
   description = "Allow containers agent to communicate with the cluster"
   tags        = {
     Name = "task-execution-role"
@@ -51,7 +51,7 @@ resource "aws_iam_role_policy_attachment" "task_execution_role_attach" {
 }
 
 resource "aws_iam_role" "task_role" {
-  name        = "task-role"
+  name        = "${var.service.name}-task-role"
   description = "Assume role for ecs task"
   tags        = {
     Name = "task-role"
@@ -72,7 +72,7 @@ resource "aws_iam_role" "task_role" {
 }
 
 resource "aws_iam_role_policy" "task_role_policy" {
-  name = "task-policy"
+  name = "${var.service.name}-task-policy"
   role = aws_iam_role.task_role.id
 
   policy = jsonencode({
@@ -344,7 +344,7 @@ resource "aws_lb_listener_rule" "service" {
 
 resource "aws_iam_role" "service_autoscaling_role" {
   count       = var.service_autoscaling.scale_on_cpu || var.service_autoscaling.scale_on_memory ? 1 : 0
-  name        = "service-autoscaling-role"
+  name        = "${var.service.name}-service-autoscaling-role"
   description = "IAM role allowing ecs service to scale automatically"
   path        = "/"
   tags        = {
