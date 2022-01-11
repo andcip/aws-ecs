@@ -44,11 +44,6 @@ variable "service" {
     name : string
     version : string
     port : number
-    healthcheck : object({
-      port: number
-      path: string
-      enabled: bool
-    })
     capacity_provider: object({
       provider: string
       base: number,
