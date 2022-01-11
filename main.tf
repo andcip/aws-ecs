@@ -169,20 +169,27 @@ resource "aws_ecs_task_definition" "service_task_definition" {
   ]
 }
 
+data "aws_vpc" "vpc" {
+  id = var.vpc_id
+}
+
 data "aws_subnets" "subnets" {
   filter {
     name   = "vpc-id"
     values = [var.vpc_id]
   }
-  filter {
-    name   = "tag:Type"
-    values = [var.service_params.is_public ? "Public" : "Private"]
-  }
+
+  tags = { Tier = "Private" }
 }
 
 data "aws_lb" "lb_trigger" {
   count = try(var.trigger.lb, null) != null ? 1 : 0
-  arn   = var.trigger.lb.arn
+  name = var.trigger.lb.name
+}
+
+data "aws_lb_listener" "lb_listener" {
+  load_balancer_arn = data.aws_lb.lb_trigger.arn
+  port = 443
 }
 
 
@@ -195,7 +202,7 @@ resource "aws_security_group" "service_sg" {
     from_port       = var.service.port
     to_port         = var.service.port
     security_groups = var.trigger.lb != null ? data.aws_lb.lb_trigger[0].security_groups : null
-    cidr_blocks     = var.trigger.lb != null ? null : []
+    cidr_blocks     =  var.trigger.lb != null ? null : [data.aws_vpc.vpc.cidr_block]
   }
 
   egress {
@@ -249,8 +256,6 @@ resource "aws_ecs_service" "service" {
     }
   }
 
-  //tags = local.common_tags
-
 }
 
 resource "aws_cloudwatch_log_group" "service_log_group" {
@@ -281,7 +286,7 @@ resource "aws_lb_target_group" "service_tg" {
 
 resource "aws_lb_listener_rule" "service" {
   count        = try(var.trigger.lb, null) == null ? 0 : 1
-  listener_arn = var.trigger.lb.arn
+  listener_arn = data.aws_lb_listener.lb_listener.arn
 
   action {
     type             = "forward"

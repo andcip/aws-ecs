@@ -13,7 +13,7 @@ variable "vpc_id" {
 variable "trigger" {
   type    = object({
     lb: object({
-      arn: string,
+      name: string,
       conditions: object({
         path_patterns: list(string)
         hosts: optional(list(string))
