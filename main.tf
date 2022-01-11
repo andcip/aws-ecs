@@ -287,7 +287,7 @@ resource "aws_lb_target_group" "service_tg" {
 
 resource "aws_lb_listener_rule" "service" {
   count        = try(var.trigger.lb, null) == null ? 0 : 1
-  listener_arn = data.aws_lb_listener.lb_listener.arn
+  listener_arn = data.aws_lb_listener.lb_listener[0].arn
 
   action {
     type             = "forward"
