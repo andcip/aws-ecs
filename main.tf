@@ -53,22 +53,22 @@ resource "aws_iam_role_policy_attachment" "task_execution_role_attach" {
 resource "aws_iam_role" "task_role" {
   name        = "${var.service.name}-task-role"
   description = "Assume role for ecs task"
-  tags        = {
-    Name = "task-role"
-  }
 
   assume_role_policy = jsonencode({
-    version : "2012-10-17",
-    statement : [
+    Version : "2012-10-17"
+    Statement : [
       {
-        action : "sts:AssumeRole",
-        principal : {
-          service : "ecs-tasks.amazonaws.com"
-        },
-        effect : "Allow"
+        Action : "sts:AssumeRole"
+        Effect : "Allow"
+        Principal : {
+          Service : "ecs-tasks.amazonaws.com"
+        }
       }
     ]
   })
+  tags               = {
+    Name = "${var.service.name}-task-role"
+  }
 }
 
 resource "aws_iam_role_policy" "task_role_policy" {
