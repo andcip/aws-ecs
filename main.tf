@@ -118,7 +118,7 @@ resource "aws_cloudwatch_log_group" "task_log_group" {
 locals {
   environment_variables = [for n, v in var.service.env : { name : n, value : v }]
 
-  healthcheck_command = var.service.healthcheck.enabled ? "curl -f http://localhost:${var.service.healthcheck.port}${var.service.healthcheck.path} || exit 1" : "exit 0"
+  healthcheck_command = var.healthcheck.ecs_enabled ? "curl -f http://localhost:${var.healthcheck.port}${var.healthcheck.path} || exit 1" : "exit 0"
 }
 
 ##TODO move to template file
@@ -274,7 +274,7 @@ resource "aws_lb_target_group" "service_tg" {
   vpc_id      = var.vpc_id
   health_check {
     healthy_threshold = 3
-    path              = var.service.healthcheck.path
+    path              = var.healthcheck.path
     port              = var.service.port
   }
   stickiness {

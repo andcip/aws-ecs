@@ -27,6 +27,18 @@ variable "trigger" {
   default = null
 }
 
+variable "healthcheck" {
+  type =  object({
+    port: number
+    path: string
+    ecs_enabled: bool
+  })
+
+  default = {
+    port: 80, path: "/", ecs_enabled: false
+  }
+}
+
 variable "service" {
   type = object({
     name : string
