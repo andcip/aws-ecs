@@ -178,7 +178,10 @@ data "aws_subnets" "subnets" {
     values = [var.vpc_id]
   }
 
-  tags = { Tier = "Private" }
+  filter {
+    name   = "tag:Type"
+    values = [var.service_params.is_public ? "Public" : "Private"]
+  }
 }
 
 data "aws_lb" "lb_trigger" {
