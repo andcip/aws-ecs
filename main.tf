@@ -52,7 +52,7 @@ resource "aws_iam_role_policy_attachment" "task_execution_role_attach" {
 
 resource "aws_iam_role" "task_role" {
   name        = "task-role"
-  description = "Allow containers to communicate with CloudWatch"
+  description = "Assume role for ecs task"
   tags        = {
     Name = "task-role"
   }
@@ -117,8 +117,11 @@ resource "aws_cloudwatch_log_group" "task_log_group" {
 
 locals {
   environment_variables = [for n, v in var.service.env : { name : n, value : v }]
+  healthcheck_path = defaults(var.service.healthcheck.path, "")
+  healthcheck_port = defaults(var.service.healthcheck.port, var.service.port)
 }
 
+##TODO move to template file
 resource "aws_ecs_task_definition" "service_task_definition" {
   container_definitions    = jsonencode([
     {
@@ -139,7 +142,7 @@ resource "aws_ecs_task_definition" "service_task_definition" {
       startTimeout     = 10
       stopTimeout      = 10
       healthCheck      = {
-        command  = ["curl -f http://localhost:${var.service.port}/${var.service.healthcheck_path} || exit 1"]
+        command  = ["curl -f http://localhost:${local.healthcheck_port}${local.healthcheck_path} || exit 1"]
         interval = 30
         timeout  = 10
         retries  = 5
