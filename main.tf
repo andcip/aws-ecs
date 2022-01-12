@@ -158,7 +158,7 @@ resource "aws_ecs_task_definition" "service_task_definition" {
       startTimeout     = 10
       stopTimeout      = 10
       healthCheck      = {
-        command  = [local.healthcheck_command]
+        command  = ["CMD-SHELL", local.healthcheck_command]
         interval = 30
         timeout  = 10
         retries  = 5
