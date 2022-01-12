@@ -91,6 +91,22 @@ resource "aws_iam_role_policy" "task_role_policy" {
   })
 }
 
+resource "aws_iam_role_policy" "function_policy" {
+  count  = length(var.service_policies)
+  name   = "${var.service.name}_function_policy_${count.index}"
+  role   = aws_iam_role.task_role.id
+  policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = var.service_policies[count.index].actions
+        Resource = var.service_policies[count.index].resources
+      }
+    ]
+  })
+}
+
 resource "aws_service_discovery_service" "ecs_discovery_service" {
   count = var.service_registry_name != null ? 1 : 0
   name  = var.service.name

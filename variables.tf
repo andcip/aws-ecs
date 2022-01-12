@@ -27,6 +27,15 @@ variable "trigger" {
   default = null
 }
 
+variable "service_policies" {
+  type = list(object({
+    actions = list(string)
+    resources = list(string)
+  }))
+
+  default = []
+}
+
 variable "healthcheck" {
   type =  object({
     port: number
