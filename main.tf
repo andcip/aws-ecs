@@ -449,6 +449,36 @@ resource "aws_appautoscaling_policy" "memory_scale_policy" {
 
   }
 }
+
+resource "aws_appautoscaling_scheduled_action" "turn_on_scheduled_action" {
+  count              = var.service_autoscaling.scale_on_schedule ? 1 : 0
+  name               = "turn_on_action"
+  service_namespace  = "ecs"
+  resource_id        = aws_appautoscaling_target.ecs_target[count.index].resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target[count.index].scalable_dimension
+  schedule           = var.service_autoscaling.start_schedule
+
+  scalable_target_action {
+    min_capacity = var.service_params.desired_count
+    max_capacity = var.service_autoscaling.max_instance_number
+  }
+}
+
+resource "aws_appautoscaling_scheduled_action" "turn_off_scheduled_action" {
+  count              = var.service_autoscaling.scale_on_schedule ? 1 : 0
+  name               = "turn_off_action"
+  service_namespace  = "ecs"
+  resource_id        = aws_appautoscaling_target.ecs_target[count.index].resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target[count.index].scalable_dimension
+  schedule           = var.service_autoscaling.stop_schedule
+
+  scalable_target_action {
+    min_capacity = 0
+    max_capacity = 0
+  }
+}
+
+
 resource "aws_cloudwatch_metric_alarm" "service-alarm" {
   count               = try(var.trigger.lb, null) != null && var.alarm_topic_name != null ? 1 : 0
   alarm_name          = "${var.service.name}-lb-target-count-alarm"
