@@ -234,10 +234,13 @@ resource "aws_ecs_service" "service" {
   deployment_maximum_percent         = 200
   force_new_deployment               = true
 
-  capacity_provider_strategy {
-    capacity_provider = var.service.capacity_provider.provider
-    base              = var.service.capacity_provider.base
-    weight            = var.service.capacity_provider.weight
+  dynamic "capacity_provider_strategy" {
+    for_each = var.service.capacity_provider != null ? var.service.capacity_provider : []
+    content {
+      capacity_provider = capacity_provider_strategy.value.provider
+      weight            = capacity_provider_strategy.value.weight
+      base              = lookup(capacity_provider_strategy.value, "base", null)
+    }
   }
 
   network_configuration {

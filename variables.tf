@@ -53,11 +53,11 @@ variable "service" {
     name : string
     version : string
     port : number
-    capacity_provider : object({
+    capacity_provider : optional(list(object({
       provider : string
-      base : number,
       weight : number
-    })
+      base : optional(number)
+    })))
     env : map(string)
   })
 }
