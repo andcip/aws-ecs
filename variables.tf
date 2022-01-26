@@ -4,10 +4,12 @@ terraform {
 
 variable "existing_cluster_name" {
   type = string
+  description = "The existing ECS Cluster name."
 }
 
 variable "vpc_id" {
   type = string
+  description = "Id of the VPC where ecs have to be."
 }
 
 variable "trigger" {
@@ -25,6 +27,7 @@ variable "trigger" {
     })
   })
   default = null
+  description = "The Service trigger, supported only alb right now. Default null."
 }
 
 variable "service_policies" {
@@ -34,6 +37,7 @@ variable "service_policies" {
   }))
 
   default = []
+  description = "List of all iam policy to attach to the service. Default empty."
 }
 
 variable "healthcheck" {
@@ -46,6 +50,7 @@ variable "healthcheck" {
   default = {
     port : 80, path : "/", ecs_enabled : false
   }
+  description = "Service Healthcheck configuration. Default to root path on port 80 only from alb if present."
 }
 
 variable "service" {
@@ -60,15 +65,17 @@ variable "service" {
     })))
     env : map(string)
   })
+
+  description = "The service configuration parameters."
 }
 
 variable "service_registry_name" {
   type    = string
   default = null
+  description = "Service registry name. If specified, it creates a private DNS for the service."
 }
 
 variable "service_params" {
-  description = "Service deployment parameters"
   type        = object({
     cpu           = number,
     memory        = number,
@@ -81,10 +88,12 @@ variable "service_params" {
     desired_count = 1,
     is_public     = false
   }
+
+  description = "Service deployment parameters. Default 512 cpu, 1024 memory and  1 private instance."
 }
 
 variable "service_autoscaling" {
-  description = "Service autoscaling parameters"
+
   type        = object({
     max_instance_number = number
     scale_on_cpu        = bool
@@ -111,9 +120,11 @@ variable "service_autoscaling" {
     scale_out_cooldown  = 60
     scale_in_cooldown   = 180
   }
+  description = "Service autoscaling parameters with cpu, memory or schedule metrics. Default disabled"
 }
 
 variable "alarm_topic_name" {
   type    = string
   default = null
+  description = "If specified, it enable error alarms to a specific sns topic. Default null."
 }
