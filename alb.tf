@@ -29,7 +29,7 @@ resource "aws_lb_target_group" "service_tg" {
 
 
 resource "aws_lb_listener_rule" "service" {
-  count        = try(var.trigger.lb, null) == null ? 0 : 1
+  count        = try(var.trigger.lb, null) == null ? 0 : length(var.trigger.lb.rules)
   listener_arn = data.aws_lb_listener.lb_listener[0].arn
 
   action {
@@ -39,21 +39,21 @@ resource "aws_lb_listener_rule" "service" {
 
   condition {
     path_pattern {
-      values = var.trigger.lb.conditions.path_patterns
+      values = var.trigger.lb.rules[count.index].path_patterns
     }
   }
 
   dynamic "condition" {
-    for_each = var.trigger.lb.conditions.hosts != null ?  [true] : []
+    for_each = var.trigger.lb.rules[count.index].hosts != null ?  [true] : []
     content {
       host_header {
-        values = var.trigger.lb.conditions.hosts
+        values = var.trigger.lb.rules[count.index].hosts
       }
     }
   }
 
   dynamic "condition" {
-    for_each = var.trigger.lb.conditions.http_headers != null ? var.trigger.lb.conditions.http_headers : []
+    for_each = var.trigger.lb.rules[count.index].http_headers != null ? var.trigger.lb.rules[count.index].http_headers : []
     content {
       http_header {
         http_header_name = condition.key
@@ -63,28 +63,28 @@ resource "aws_lb_listener_rule" "service" {
   }
 
   dynamic "condition" {
-    for_each = var.trigger.lb.conditions.http_methods != null ? [true] : []
+    for_each = var.trigger.lb.rules[count.index].http_methods != null ? [true] : []
     content {
       http_request_method {
-        values = var.trigger.lb.conditions.http_methods
+        values = var.trigger.lb.rules[count.index].http_methods
       }
     }
   }
 
   dynamic "condition" {
-    for_each = var.trigger.lb.conditions.source_ips != null ? [true] : []
+    for_each = var.trigger.lb.rules[count.index].source_ips != null ? [true] : []
     content {
       source_ip {
-        values = var.trigger.lb.conditions.source_ips
+        values = var.trigger.lb.rules[count.index].source_ips
       }
     }
   }
 
   dynamic "condition" {
-    for_each = var.trigger.lb.conditions.query_string != null ? [true] : []
+    for_each = var.trigger.lb.rules[count.index].query_string != null ? [true] : []
     content {
       query_string {
-        value = var.trigger.lb.conditions.query_string
+        value = var.trigger.lb.rules[count.index].query_string
       }
     }
   }

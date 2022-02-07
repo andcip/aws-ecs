@@ -16,14 +16,14 @@ variable "trigger" {
   type    = object({
     lb : object({
       name : string,
-      conditions : object({
+      rules : list(object({
         path_patterns : list(string)
         hosts : optional(list(string))
         http_headers : optional(list(map(string)))
         http_methods : optional(list(string))
         source_ips : optional(list(string))
         query_string : optional(string)
-      })
+      }))
     })
   })
   default = null
