@@ -1,0 +1,14 @@
+stages:
+  - validate
+  - sec
+
+validate:
+  image:
+    name: hashicorp/terraform:latest
+    entrypoint: [""]
+  stage: validate
+  before_script:
+    - terraform init
+  script:
+    - terraform validate
+
