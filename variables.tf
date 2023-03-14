@@ -1,7 +1,3 @@
-terraform {
-  experiments = [module_variable_optional_attrs]
-}
-
 variable "existing_cluster_name" {
   type = string
   description = "The existing ECS Cluster name."
